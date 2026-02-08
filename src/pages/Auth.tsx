@@ -24,7 +24,7 @@ export default function Auth() {
       if (error) {
         toast({ title: "שגיאה", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "נשלח!", description: "בדוק את האימייל שלך לקישור איפוס הסיסמה." });
+        toast({ title: "נשלח!", description: "כדאי לבדוק את האימייל שלך לקישור איפוס הסיסמה." });
         setMode("login");
       }
       setLoading(false);
