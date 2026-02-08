@@ -58,7 +58,7 @@ export default function Auth() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
             <Home className="h-7 w-7 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">HomeVault</CardTitle>
+          <CardTitle className="text-2xl font-bold">הבית שלי</CardTitle>
           <CardDescription>
             {mode === "login" ? "התחבר לחשבון שלך" : mode === "signup" ? "צור חשבון חדש" : "איפוס סיסמה"}
           </CardDescription>
