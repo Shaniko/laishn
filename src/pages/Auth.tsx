@@ -101,7 +101,7 @@ export default function Auth() {
                 onClick={() => setMode("forgot")}
                 className="text-sm text-muted-foreground hover:text-primary hover:underline underline-offset-4"
               >
-                שכחת סיסמה?
+                אופס, שכחתי סיסמה?
               </button>
             </div>
           )}
