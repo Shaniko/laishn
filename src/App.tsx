@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ItemForm from "./pages/ItemForm";
 import ItemView from "./pages/ItemView";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/item/new" element={<ProtectedRoute><ItemForm /></ProtectedRoute>} />
             <Route path="/item/:id" element={<ProtectedRoute><ItemView /></ProtectedRoute>} />
             <Route path="/item/:id/edit" element={<ProtectedRoute><ItemForm /></ProtectedRoute>} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
