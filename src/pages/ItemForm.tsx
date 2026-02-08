@@ -12,8 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Upload, X, FileText, Image as ImageIcon } from "lucide-react";
 
 export default function ItemForm() {
-  const { id } = useParams<{ id: string }>();
-  const isNew = id === "new";
+  const { id } = useParams<{ id?: string }>();
+  const isNew = !id;
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
