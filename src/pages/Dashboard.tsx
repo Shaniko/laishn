@@ -20,8 +20,9 @@ export default function Dashboard() {
   const { data: items, isLoading } = useItems(categoryFilter || undefined, search || undefined);
 
   useEffect(() => {
-    if (user) ensureDefaults.mutate();
-  }, [user]);
+    if (user?.id) ensureDefaults.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   return (
     <div dir="rtl" className="min-h-screen bg-background">
