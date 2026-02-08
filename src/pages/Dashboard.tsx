@@ -33,7 +33,7 @@ export default function Dashboard() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
               <Home className="h-5 w-5 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold">HomeVault</h1>
+            <h1 className="text-xl font-bold">הבית שלי</h1>
           </div>
           <Button variant="ghost" size="icon" onClick={signOut}>
             <LogOut className="h-5 w-5" />
@@ -60,7 +60,9 @@ export default function Dashboard() {
             <SelectContent>
               <SelectItem value="all">כל הקטגוריות</SelectItem>
               {categories?.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
