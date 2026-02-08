@@ -45,7 +45,7 @@ export default function Auth() {
       if (error) {
         toast({ title: "שגיאה בהרשמה", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "נרשמת בהצלחה!", description: "בדוק את האימייל לאישור החשבון." });
+        toast({ title: "נרשמת בהצלחה!", description: "נשאר רק לאשר את המייל שנשלח אליך:) ." });
       }
     }
     setLoading(false);
@@ -60,7 +60,7 @@ export default function Auth() {
           </div>
           <CardTitle className="text-2xl font-bold">הבית שלי</CardTitle>
           <CardDescription>
-            {mode === "login" ? "התחבר לחשבון שלך" : mode === "signup" ? "צור חשבון חדש" : "איפוס סיסמה"}
+            {mode === "login" ? "חיבור לחשבון שלך" : mode === "signup" ? "יצירת חשבון חדש" : "איפוס סיסמה"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -85,7 +85,13 @@ export default function Auth() {
               />
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "טוען..." : mode === "login" ? "התחבר" : mode === "signup" ? "הירשם" : "שלח קישור איפוס"}
+              {loading
+                ? "טוען..."
+                : mode === "login"
+                  ? "התחברות"
+                  : mode === "signup"
+                    ? "הרשמה"
+                    : "שכחתי סיסמא - שליחת סיסמא חדשה"}
             </Button>
           </form>
 
@@ -103,16 +109,16 @@ export default function Auth() {
           <div className="mt-4 text-center text-sm text-muted-foreground">
             {mode === "forgot" ? (
               <button onClick={() => setMode("login")} className="text-primary underline-offset-4 hover:underline">
-                חזור להתחברות
+                חזרה להתחברות
               </button>
             ) : (
               <>
-                {mode === "login" ? "אין לך חשבון?" : "כבר יש לך חשבון?"}{" "}
+                {mode === "login" ? "אין לי חשבון?" : "כבר יש לי חשבון?"}{" "}
                 <button
                   onClick={() => setMode(mode === "login" ? "signup" : "login")}
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  {mode === "login" ? "הירשם" : "התחבר"}
+                  {mode === "login" ? "הרשמה" : "התחברות"}
                 </button>
               </>
             )}
