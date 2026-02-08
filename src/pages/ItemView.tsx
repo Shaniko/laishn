@@ -5,7 +5,14 @@ import { useItemFiles } from "@/hooks/useItemFiles";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Edit, Trash2, Download, FileText, Image as ImageIcon, FolderOpen, Calendar } from "lucide-react";
 import { format } from "date-fns";
@@ -121,11 +128,19 @@ export default function ItemView() {
                 <Card key={f.id}>
                   <CardContent className="p-3">
                     {isImage(f.file_name) && fileUrls[f.id] && (
-                      <img src={fileUrls[f.id]} alt={f.file_name} className="mb-3 w-full rounded-lg object-cover max-h-64" />
+                      <img
+                        src={fileUrls[f.id]}
+                        alt={f.file_name}
+                        className="mb-3 w-full rounded-lg object-cover max-h-64"
+                      />
                     )}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-sm">
-                        {isImage(f.file_name) ? <ImageIcon className="h-4 w-4 text-muted-foreground" /> : <FileText className="h-4 w-4 text-muted-foreground" />}
+                        {isImage(f.file_name) ? (
+                          <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                        )}
                         <span className="truncate max-w-[200px]">{f.file_name}</span>
                       </div>
                       {fileUrls[f.id] && (
@@ -149,13 +164,15 @@ export default function ItemView() {
         <DialogContent dir="rtl">
           <DialogHeader>
             <DialogTitle>מחיקת פריט</DialogTitle>
-            <DialogDescription>
-              האם אתה בטוח שברצונך למחוק את "{item.name}"? הפעולה בלתי הפיכה.
-            </DialogDescription>
+            <DialogDescription>סגור.ה על זה שרוצה למחוק את "{item.name}"? הפעולה בלתי הפיכה.</DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:justify-start">
-            <Button variant="destructive" onClick={handleDelete}>מחק</Button>
-            <Button variant="outline" onClick={() => setConfirmDelete(false)}>ביטול</Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              מחק
+            </Button>
+            <Button variant="outline" onClick={() => setConfirmDelete(false)}>
+              ביטול
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
