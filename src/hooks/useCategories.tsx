@@ -23,7 +23,7 @@ export function useCategories() {
 
   const ensureDefaults = useMutation({
     mutationFn: async () => {
-      if (!user) return;
+      if (!user?.id) return;
       const { data: existing } = await supabase.from("categories").select("name");
       const existingNames = new Set(existing?.map((c) => c.name));
       const missing = DEFAULT_CATEGORIES.filter((n) => !existingNames.has(n));
