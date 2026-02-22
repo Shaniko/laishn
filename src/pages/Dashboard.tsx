@@ -7,17 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX } from "lucide-react";
+import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
+import { toast } from "sonner";
+import QuickAddPanel from "@/components/QuickAddPanel";
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const { data: categories, ensureDefaults } = useCategories();
-  const { data: items, isLoading } = useItems(categoryFilter || undefined, search || undefined);
+  const { data: items, isLoading, addItem } = useItems(categoryFilter || undefined, search || undefined);
+
+  const handleQuickAdd = async (name: string) => {
+    await addItem.mutateAsync({ name });
+    toast.success(`"${name}" נוסף בהצלחה`);
+  };
 
   useEffect(() => {
     if (user?.id) ensureDefaults.mutate();
@@ -118,12 +126,20 @@ export default function Dashboard() {
 
         {/* FAB */}
         <Button
-          onClick={() => navigate("/item/new")}
+          onClick={() => setQuickAddOpen((prev) => !prev)}
           size="lg"
-          className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg"
+          className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg transition-transform duration-200"
         >
-          <Plus className="h-6 w-6" />
+          {quickAddOpen ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
         </Button>
+
+        {/* Quick Add Panel */}
+        <QuickAddPanel
+          isOpen={quickAddOpen}
+          onClose={() => setQuickAddOpen(false)}
+          onAdd={handleQuickAdd}
+          isAdding={addItem.isPending}
+        />
       </main>
     </div>
   );
