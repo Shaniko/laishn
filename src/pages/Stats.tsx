@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useItems } from "@/hooks/useItems";
 import { useCategories } from "@/hooks/useCategories";
+import { useRooms } from "@/hooks/useRooms";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Package, DollarSign, ShieldCheck, ShieldX } from "lucide-react";
+import { ArrowRight, Package, DollarSign, ShieldCheck, ShieldX, DoorOpen } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { format, parseISO } from "date-fns";
 import { he } from "date-fns/locale";
@@ -23,6 +24,7 @@ export default function Stats() {
   const navigate = useNavigate();
   const { data: items } = useItems();
   const { data: categories } = useCategories();
+  const { data: rooms } = useRooms();
 
   if (!items) {
     return (
@@ -45,6 +47,14 @@ export default function Stats() {
     catMap.set(name, (catMap.get(name) || 0) + 1);
   });
   const categoryData = Array.from(catMap, ([name, value]) => ({ name, value }));
+
+  // Room distribution
+  const roomMap = new Map<string, number>();
+  items.forEach((i) => {
+    const name = i.rooms?.name || "ללא חדר";
+    roomMap.set(name, (roomMap.get(name) || 0) + 1);
+  });
+  const roomData = Array.from(roomMap, ([name, value]) => ({ name, value }));
 
   // Purchases over time (by month)
   const monthMap = new Map<string, number>();
@@ -141,6 +151,27 @@ export default function Stats() {
                   <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, value }) => `${name} (${value})`}>
                     {categoryData.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Room distribution */}
+        {roomData.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">פריטים לפי חדר</CardTitle>
+            </CardHeader>
+            <CardContent className="flex justify-center">
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={roomData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, value }) => `${name} (${value})`}>
+                    {roomData.map((_, i) => (
+                      <Cell key={i} fill={COLORS[(i + 3) % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />

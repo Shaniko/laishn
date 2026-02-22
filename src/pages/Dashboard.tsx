@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useItems } from "@/hooks/useItems";
 import { useCategories } from "@/hooks/useCategories";
+import { useRooms } from "@/hooks/useRooms";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X } from "lucide-react";
+import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X, DoorOpen } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { toast } from "sonner";
@@ -18,9 +19,11 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [roomFilter, setRoomFilter] = useState<string>("");
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const { data: categories, ensureDefaults } = useCategories();
-  const { data: items, isLoading, addItem } = useItems(categoryFilter || undefined, search || undefined);
+  const { data: rooms, ensureDefaults: ensureRoomDefaults } = useRooms();
+  const { data: items, isLoading, addItem } = useItems(categoryFilter || undefined, search || undefined, roomFilter || undefined);
 
   const handleQuickAdd = async (name: string) => {
     await addItem.mutateAsync({ name });
@@ -28,7 +31,10 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (user?.id) ensureDefaults.mutate();
+    if (user?.id) {
+      ensureDefaults.mutate();
+      ensureRoomDefaults.mutate();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
@@ -67,14 +73,27 @@ export default function Dashboard() {
             />
           </div>
           <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="כל הקטגוריות" />
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="קטגוריה" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">כל הקטגוריות</SelectItem>
               {categories?.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id}>
                   {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={roomFilter} onValueChange={(v) => setRoomFilter(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="חדר" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">כל החדרים</SelectItem>
+              {rooms?.map((room) => (
+                <SelectItem key={room.id} value={room.id}>
+                  {room.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -103,6 +122,12 @@ export default function Dashboard() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-foreground">{item.name}</h3>
                   <div className="mt-1 flex items-center gap-1 flex-wrap">
+                    {item.rooms && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <DoorOpen className="h-3.5 w-3.5" />
+                        <span>{item.rooms.name}</span>
+                      </div>
+                    )}
                     {item.categories && (
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <FolderOpen className="h-3.5 w-3.5" />
