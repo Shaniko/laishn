@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useItems } from "@/hooks/useItems";
@@ -7,22 +7,44 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX } from "lucide-react";
+import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickName, setQuickName] = useState("");
+  const quickInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
   const { data: categories, ensureDefaults } = useCategories();
-  const { data: items, isLoading } = useItems(categoryFilter || undefined, search || undefined);
+  const { data: items, isLoading, addItem } = useItems(categoryFilter || undefined, search || undefined);
 
   useEffect(() => {
     if (user?.id) ensureDefaults.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  useEffect(() => {
+    if (quickAddOpen) quickInputRef.current?.focus();
+  }, [quickAddOpen]);
+
+  const handleQuickAdd = async () => {
+    const name = quickName.trim();
+    if (!name) return;
+    try {
+      await addItem.mutateAsync({ name });
+      setQuickName("");
+      toast({ title: `"${name}" נוסף!` });
+      quickInputRef.current?.focus();
+    } catch (err: any) {
+      toast({ title: "שגיאה", description: err.message, variant: "destructive" });
+    }
+  };
 
   return (
     <div dir="rtl" className="min-h-screen bg-background">
@@ -116,13 +138,46 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Quick Add Panel */}
+        {quickAddOpen && (
+          <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-card p-4 shadow-lg animate-in slide-in-from-bottom">
+            <div className="container mx-auto max-w-lg" dir="rtl">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-semibold">הוספה מהירה</span>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => { setQuickAddOpen(false); navigate("/item/new"); }}>
+                    <FileText className="h-3.5 w-3.5" />
+                    טופס מלא
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setQuickAddOpen(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <form onSubmit={(e) => { e.preventDefault(); handleQuickAdd(); }} className="flex gap-2">
+                <Input
+                  ref={quickInputRef}
+                  placeholder="שם המוצר..."
+                  value={quickName}
+                  onChange={(e) => setQuickName(e.target.value)}
+                  className="flex-1"
+                />
+                <Button type="submit" disabled={!quickName.trim() || addItem.isPending}>
+                  <Plus className="h-4 w-4 ml-1" />
+                  הוסף
+                </Button>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* FAB */}
         <Button
-          onClick={() => navigate("/item/new")}
+          onClick={() => setQuickAddOpen((v) => !v)}
           size="lg"
-          className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg"
+          className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg z-30"
         >
-          <Plus className="h-6 w-6" />
+          <Plus className={`h-6 w-6 transition-transform ${quickAddOpen ? "rotate-45" : ""}`} />
         </Button>
       </main>
     </div>
