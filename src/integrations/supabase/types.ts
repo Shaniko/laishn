@@ -74,8 +74,13 @@ export type Database = {
           id: string
           name: string
           notes: string | null
+          phone: string | null
+          purchase_date: string | null
+          purchase_price: number | null
           updated_at: string
           user_id: string
+          warranty_end_date: string | null
+          warranty_file_url: string | null
         }
         Insert: {
           category_id?: string | null
@@ -83,8 +88,13 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
+          phone?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
           updated_at?: string
           user_id: string
+          warranty_end_date?: string | null
+          warranty_file_url?: string | null
         }
         Update: {
           category_id?: string | null
@@ -92,8 +102,13 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
+          phone?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
           updated_at?: string
           user_id?: string
+          warranty_end_date?: string | null
+          warranty_file_url?: string | null
         }
         Relationships: [
           {

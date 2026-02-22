@@ -7,6 +7,11 @@ export interface ItemWithCategory {
   name: string;
   notes: string | null;
   category_id: string | null;
+  purchase_date: string | null;
+  purchase_price: number | null;
+  warranty_end_date: string | null;
+  warranty_file_url: string | null;
+  phone: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -36,7 +41,16 @@ export function useItems(categoryFilter?: string, search?: string) {
   });
 
   const addItem = useMutation({
-    mutationFn: async (item: { name: string; category_id?: string | null; notes?: string }) => {
+    mutationFn: async (item: {
+      name: string;
+      category_id?: string | null;
+      notes?: string;
+      purchase_date?: string | null;
+      purchase_price?: number | null;
+      warranty_end_date?: string | null;
+      warranty_file_url?: string | null;
+      phone?: string | null;
+    }) => {
       if (!user) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("items")
@@ -50,7 +64,17 @@ export function useItems(categoryFilter?: string, search?: string) {
   });
 
   const updateItem = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; name?: string; category_id?: string | null; notes?: string }) => {
+    mutationFn: async ({ id, ...updates }: {
+      id: string;
+      name?: string;
+      category_id?: string | null;
+      notes?: string;
+      purchase_date?: string | null;
+      purchase_price?: number | null;
+      warranty_end_date?: string | null;
+      warranty_file_url?: string | null;
+      phone?: string | null;
+    }) => {
       const { error } = await supabase.from("items").update(updates).eq("id", id);
       if (error) throw error;
     },
