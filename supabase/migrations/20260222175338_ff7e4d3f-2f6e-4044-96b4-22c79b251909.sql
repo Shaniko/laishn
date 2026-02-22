@@ -1,0 +1,1 @@
+ALTER TABLE public.items ADD COLUMN manual_url text;

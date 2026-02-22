@@ -13,6 +13,7 @@ export interface ItemWithCategory {
   warranty_end_date: string | null;
   warranty_file_url: string | null;
   phone: string | null;
+  manual_url: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -54,6 +55,7 @@ export function useItems(categoryFilter?: string, search?: string, roomFilter?: 
       warranty_end_date?: string | null;
       warranty_file_url?: string | null;
       phone?: string | null;
+      manual_url?: string | null;
     }) => {
       if (!user) throw new Error("Not authenticated");
       const { data, error } = await supabase
@@ -79,6 +81,7 @@ export function useItems(categoryFilter?: string, search?: string, roomFilter?: 
       warranty_end_date?: string | null;
       warranty_file_url?: string | null;
       phone?: string | null;
+      manual_url?: string | null;
     }) => {
       const { error } = await supabase.from("items").update(updates).eq("id", id);
       if (error) throw error;

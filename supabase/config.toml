@@ -1,1 +1,7 @@
 project_id = "oodmuunklhutlezqaliy"
+
+[functions.identify-image]
+verify_jwt = false
+
+[functions.ask-assistant]
+verify_jwt = false
