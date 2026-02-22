@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ItemForm from "./pages/ItemForm";
+import Stats from "./pages/Stats";
 import ItemView from "./pages/ItemView";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/item/new" element={<ProtectedRoute><ItemForm /></ProtectedRoute>} />
             <Route path="/item/:id" element={<ProtectedRoute><ItemView /></ProtectedRoute>} />
             <Route path="/item/:id/edit" element={<ProtectedRoute><ItemForm /></ProtectedRoute>} />
+            <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

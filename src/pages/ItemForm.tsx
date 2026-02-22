@@ -8,8 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, Upload, X, FileText, Image as ImageIcon } from "lucide-react";
+import { ArrowRight, Upload, X, FileText, Image as ImageIcon, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { he } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 export default function ItemForm() {
   const { id } = useParams<{ id?: string }>();
@@ -25,6 +30,11 @@ export default function ItemForm() {
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [notes, setNotes] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState<Date | undefined>();
+  const [purchasePrice, setPurchasePrice] = useState("");
+  const [warrantyEndDate, setWarrantyEndDate] = useState<Date | undefined>();
+  const [warrantyFileUrl, setWarrantyFileUrl] = useState("");
+  const [phone, setPhone] = useState("");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -33,6 +43,11 @@ export default function ItemForm() {
       setName(existingItem.name);
       setCategoryId(existingItem.category_id || "");
       setNotes(existingItem.notes || "");
+      setPurchaseDate(existingItem.purchase_date ? new Date(existingItem.purchase_date) : undefined);
+      setPurchasePrice(existingItem.purchase_price != null ? String(existingItem.purchase_price) : "");
+      setWarrantyEndDate(existingItem.warranty_end_date ? new Date(existingItem.warranty_end_date) : undefined);
+      setWarrantyFileUrl(existingItem.warranty_file_url || "");
+      setPhone(existingItem.phone || "");
     }
   }, [existingItem]);
 
@@ -43,15 +58,20 @@ export default function ItemForm() {
     }
     setSaving(true);
     try {
+      const itemData = {
+        name: name.trim(),
+        category_id: categoryId || null,
+        notes: notes.trim(),
+        purchase_date: purchaseDate ? format(purchaseDate, "yyyy-MM-dd") : null,
+        purchase_price: purchasePrice ? Number(purchasePrice) : null,
+        warranty_end_date: warrantyEndDate ? format(warrantyEndDate, "yyyy-MM-dd") : null,
+        warranty_file_url: warrantyFileUrl.trim() || null,
+        phone: phone.trim() || null,
+      };
+
       if (isNew) {
-        const newItem = await addItem.mutateAsync({
-          name: name.trim(),
-          category_id: categoryId || null,
-          notes: notes.trim(),
-        });
-        // Upload pending files
+        const newItem = await addItem.mutateAsync(itemData);
         for (const file of pendingFiles) {
-          // We need to upload after item is created
           const { supabase } = await import("@/integrations/supabase/client");
           const filePath = `${user!.id}/${newItem.id}/${Date.now()}_${file.name}`;
           await supabase.storage.from("item-files").upload(filePath, file);
@@ -64,13 +84,7 @@ export default function ItemForm() {
         toast({ title: "הפריט נוסף בהצלחה!" });
         navigate(`/item/${newItem.id}`);
       } else {
-        await updateItem.mutateAsync({
-          id: id!,
-          name: name.trim(),
-          category_id: categoryId || null,
-          notes: notes.trim(),
-        });
-        // Upload pending files
+        await updateItem.mutateAsync({ id: id!, ...itemData });
         for (const file of pendingFiles) {
           await uploadFile.mutateAsync(file);
         }
@@ -122,6 +136,56 @@ export default function ItemForm() {
           </Select>
         </div>
 
+        {/* Purchase date */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">תאריך רכישה</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full justify-start text-right font-normal", !purchaseDate && "text-muted-foreground")}>
+                <CalendarIcon className="ml-2 h-4 w-4" />
+                {purchaseDate ? format(purchaseDate, "d בMMMM yyyy", { locale: he }) : "בחר תאריך"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={purchaseDate} onSelect={setPurchaseDate} initialFocus className="p-3 pointer-events-auto" />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Purchase price */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">מחיר רכישה (₪)</label>
+          <Input type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} placeholder="0" />
+        </div>
+
+        {/* Warranty end date */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">תאריך סיום אחריות</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full justify-start text-right font-normal", !warrantyEndDate && "text-muted-foreground")}>
+                <CalendarIcon className="ml-2 h-4 w-4" />
+                {warrantyEndDate ? format(warrantyEndDate, "d בMMMM yyyy", { locale: he }) : "בחר תאריך"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={warrantyEndDate} onSelect={setWarrantyEndDate} initialFocus className="p-3 pointer-events-auto" />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Warranty file URL */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">לינק לתעודת אחריות</label>
+          <Input value={warrantyFileUrl} onChange={(e) => setWarrantyFileUrl(e.target.value)} placeholder="https://..." />
+        </div>
+
+        {/* Phone */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">טלפון שירות</label>
+          <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="03-1234567" dir="ltr" className="text-right" />
+        </div>
+
         <div className="space-y-2">
           <label className="text-sm font-medium">הערות</label>
           <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="פרטים נוספים, מספר סידורי, תאריך רכישה..." rows={4} />
@@ -130,8 +194,6 @@ export default function ItemForm() {
         {/* File upload */}
         <div className="space-y-3">
           <label className="text-sm font-medium">קבצים מצורפים</label>
-
-          {/* Existing files */}
           {files?.map((f) => (
             <div key={f.id} className="flex items-center justify-between rounded-lg border bg-card p-3">
               <div className="flex items-center gap-2 text-sm">
@@ -143,8 +205,6 @@ export default function ItemForm() {
               </Button>
             </div>
           ))}
-
-          {/* Pending files */}
           {pendingFiles.map((f, i) => (
             <div key={i} className="flex items-center justify-between rounded-lg border border-dashed bg-muted/50 p-3">
               <div className="flex items-center gap-2 text-sm">
@@ -156,7 +216,6 @@ export default function ItemForm() {
               </Button>
             </div>
           ))}
-
           <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary">
             <Upload className="h-5 w-5" />
             <span>לחץ להעלאת קובץ</span>

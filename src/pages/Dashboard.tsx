@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, LogOut, Home, Package, FolderOpen } from "lucide-react";
+import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 
@@ -35,9 +35,14 @@ export default function Dashboard() {
             </div>
             <h1 className="text-xl font-bold">הבית שלי</h1>
           </div>
-          <Button variant="ghost" size="icon" onClick={signOut}>
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/stats")}>
+              <BarChart3 className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={signOut}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -89,12 +94,19 @@ export default function Dashboard() {
               >
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-foreground">{item.name}</h3>
-                  {item.categories && (
-                    <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                      <FolderOpen className="h-3.5 w-3.5" />
-                      <span>{item.categories.name}</span>
-                    </div>
-                  )}
+                  <div className="mt-1 flex items-center gap-1 flex-wrap">
+                    {item.categories && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <FolderOpen className="h-3.5 w-3.5" />
+                        <span>{item.categories.name}</span>
+                      </div>
+                    )}
+                    {item.warranty_end_date && (
+                      new Date(item.warranty_end_date) >= new Date()
+                        ? <span className="inline-flex items-center gap-0.5 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700"><ShieldCheck className="h-3 w-3" />פעילה</span>
+                        : <span className="inline-flex items-center gap-0.5 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700"><ShieldX className="h-3 w-3" />פגה</span>
+                    )}
+                  </div>
                   <p className="mt-2 text-xs text-muted-foreground">
                     {format(new Date(item.created_at), "d בMMMM yyyy", { locale: he })}
                   </p>
