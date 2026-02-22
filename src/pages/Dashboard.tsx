@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X, DoorOpen, ArrowUpDown } from "lucide-react";
+import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X, DoorOpen, ArrowUpDown, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { toast } from "sonner";
 import QuickAddPanel from "@/components/QuickAddPanel";
+import PhotoSuggestDialog from "@/components/PhotoSuggestDialog";
+import AskAssistant from "@/components/AskAssistant";
 import { supabase } from "@/integrations/supabase/client";
 
 type SortOption = "newest" | "oldest" | "name_asc" | "name_desc" | "price_high" | "price_low";
@@ -25,6 +27,11 @@ export default function Dashboard() {
   const [roomFilter, setRoomFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoSuggestions, setPhotoSuggestions] = useState<string[]>([]);
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
   const { data: categories, ensureDefaults } = useCategories();
   const { data: rooms, ensureDefaults: ensureRoomDefaults } = useRooms();
   const { data: items, isLoading, addItem } = useItems(categoryFilter || undefined, search || undefined, roomFilter || undefined);
@@ -36,22 +43,55 @@ export default function Dashboard() {
 
   const handlePhotoCapture = async (file: File) => {
     if (!user) return;
-    // Create item with photo name, then upload the photo
-    const itemName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ") || "פריט חדש";
+    setPhotoFile(file);
+    setPhotoDialogOpen(true);
+    setPhotoLoading(true);
+    setPhotoSuggestions([]);
+
     try {
-      const newItem = await addItem.mutateAsync({ name: itemName });
-      const filePath = `${user.id}/${newItem.id}/${Date.now()}_${file.name}`;
-      await supabase.storage.from("item-files").upload(filePath, file);
+      // Convert to base64
+      const arrayBuf = await file.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuf);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      const base64 = btoa(binary);
+
+      const { data, error } = await supabase.functions.invoke("identify-image", {
+        body: { imageBase64: base64, mimeType: file.type },
+      });
+
+      if (data?.suggestions?.length > 0) {
+        setPhotoSuggestions(data.suggestions);
+      } else {
+        // Fallback to file name
+        const fallback = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+        setPhotoSuggestions([fallback || "פריט חדש"]);
+      }
+    } catch {
+      const fallback = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+      setPhotoSuggestions([fallback || "פריט חדש"]);
+    }
+    setPhotoLoading(false);
+  };
+
+  const handlePhotoNameSelected = async (name: string) => {
+    if (!user || !photoFile) return;
+    setPhotoDialogOpen(false);
+    try {
+      const newItem = await addItem.mutateAsync({ name });
+      const filePath = `${user.id}/${newItem.id}/${Date.now()}_${photoFile.name}`;
+      await supabase.storage.from("item-files").upload(filePath, photoFile);
       await supabase.from("item_files").insert({
         item_id: newItem.id,
-        file_name: file.name,
+        file_name: photoFile.name,
         file_path: filePath,
       });
-      toast.success("הפריט צולם ונשמר! לחץ עליו כדי לערוך את הפרטים");
+      toast.success("הפריט צולם ונשמר!");
       navigate(`/item/${newItem.id}/edit`);
-    } catch (err: any) {
+    } catch {
       toast.error("שגיאה בשמירת הצילום");
     }
+    setPhotoFile(null);
   };
 
   const sortedItems = useMemo(() => {
@@ -95,6 +135,9 @@ export default function Dashboard() {
             <h1 className="text-xl font-bold">הבית שלי</h1>
           </div>
           <div className="flex gap-1">
+            <Button variant="ghost" size="icon" onClick={() => setAssistantOpen(true)} title="עוזר חכם">
+              <MessageCircle className="h-5 w-5" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate("/stats")}>
               <BarChart3 className="h-5 w-5" />
             </Button>
@@ -227,6 +270,20 @@ export default function Dashboard() {
           onAdd={handleQuickAdd}
           isAdding={addItem.isPending}
           onPhotoCapture={handlePhotoCapture}
+        />
+
+        <PhotoSuggestDialog
+          open={photoDialogOpen}
+          suggestions={photoSuggestions}
+          loading={photoLoading}
+          onSelect={handlePhotoNameSelected}
+          onClose={() => setPhotoDialogOpen(false)}
+        />
+
+        <AskAssistant
+          open={assistantOpen}
+          onClose={() => setAssistantOpen(false)}
+          items={items || []}
         />
       </main>
     </div>

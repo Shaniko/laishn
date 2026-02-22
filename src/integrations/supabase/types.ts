@@ -72,6 +72,7 @@ export type Database = {
           category_id: string | null
           created_at: string
           id: string
+          manual_url: string | null
           name: string
           notes: string | null
           phone: string | null
@@ -87,6 +88,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           id?: string
+          manual_url?: string | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -102,6 +104,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           id?: string
+          manual_url?: string | null
           name?: string
           notes?: string | null
           phone?: string | null

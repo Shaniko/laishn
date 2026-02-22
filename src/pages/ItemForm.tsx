@@ -98,6 +98,7 @@ export default function ItemForm() {
   const [warrantyEndDate, setWarrantyEndDate] = useState<Date | undefined>();
   const [warrantyFileUrl, setWarrantyFileUrl] = useState("");
   const [phone, setPhone] = useState("");
+  const [manualUrl, setManualUrl] = useState("");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -112,6 +113,7 @@ export default function ItemForm() {
       setWarrantyEndDate(existingItem.warranty_end_date ? new Date(existingItem.warranty_end_date) : undefined);
       setWarrantyFileUrl(existingItem.warranty_file_url || "");
       setPhone(existingItem.phone || "");
+      setManualUrl((existingItem as any).manual_url || "");
     }
   }, [existingItem]);
 
@@ -132,6 +134,7 @@ export default function ItemForm() {
         warranty_end_date: warrantyEndDate ? format(warrantyEndDate, "yyyy-MM-dd") : null,
         warranty_file_url: warrantyFileUrl.trim() || null,
         phone: phone.trim() || null,
+        manual_url: manualUrl.trim() || null,
       };
 
       if (isNew) {
@@ -236,6 +239,12 @@ export default function ItemForm() {
         <div className="space-y-2">
           <label className="text-sm font-medium">טלפון שירות</label>
           <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="03-1234567" dir="ltr" className="text-right" />
+        </div>
+
+        {/* Manual URL */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">לינק להוראות הפעלה</label>
+          <Input value={manualUrl} onChange={(e) => setManualUrl(e.target.value)} placeholder="https://..." />
         </div>
 
         <div className="space-y-2">

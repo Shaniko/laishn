@@ -10,7 +10,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, Edit, Trash2, Download, FileText, Image as ImageIcon, FolderOpen, Calendar, Phone, ExternalLink, ShieldCheck, ShieldX, ShieldQuestion, DollarSign, DoorOpen } from "lucide-react";
+import { ArrowRight, Edit, Trash2, Download, FileText, Image as ImageIcon, FolderOpen, Calendar, Phone, ExternalLink, ShieldCheck, ShieldX, ShieldQuestion, DollarSign, DoorOpen, BookOpen } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 
@@ -175,6 +175,14 @@ export default function ItemView() {
                 <Button variant="outline" size="sm" className="gap-2 w-full mt-2">
                   <Phone className="h-4 w-4" />
                   {item.phone}
+                </Button>
+              </a>
+            )}
+            {(item as any).manual_url && (
+              <a href={(item as any).manual_url} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="gap-2 w-full mt-2">
+                  <BookOpen className="h-4 w-4" />
+                  הוראות הפעלה
                 </Button>
               </a>
             )}
