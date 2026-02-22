@@ -1,61 +1,64 @@
 
+# הוספה מהירה של מוצרים ברצף (Quick Add)
 
-# בדיקות + "זכור אותי" בהתחברות
+## חוויית המשתמש
 
-## 1. תיבת סימון "זכור אותי" בדף ההתחברות
+לחיצה על כפתור ה-**+** בדשבורד תפתח פאנל הוספה מהירה בתחתית המסך (במקום לעבור לדף הטופס המלא). הפאנל כולל:
 
-בדף ההתחברות (Auth.tsx) תתווסף תיבת סימון "זכור אותי" מתחת לשדה הסיסמה (מופיעה רק במצב login).
+1. **שדה טקסט** עם פוקוס אוטומטי - מקלידים שם מוצר
+2. **לחיצת Enter** או כפתור "הוסף" - הפריט נשמר מיד
+3. השדה **מתרוקן** ונשאר בפוקוס - אפשר להמשיך להקליד את הבא
+4. **הודעת toast** קצרה מאשרת כל הוספה עם שם הפריט
+5. כפתור **X** לסגירת הפאנל
+6. לינק **"טופס מלא"** למי שרוצה להוסיף פריט עם כל הפרטים
 
-כשהתיבה מסומנת - המשתמש יישאר מחובר גם אחרי סגירת הדפדפן. כשלא מסומנת - הסשן יימחק כשהטאב נסגר.
+הפאנל יופיע עם אנימציה חלקה מלמטה, ויישאר צמוד לתחתית המסך.
 
-### איך זה עובד טכנית
-- Supabase Auth שומר את הטוקן ב-localStorage כברירת מחדל (שומר על חיבור)
-- כש"זכור אותי" לא מסומן, נעביר את הטוקן ל-sessionStorage אחרי ההתחברות, כך שהוא נמחק כשהדפדפן נסגר
-- state חדש: `rememberMe` (boolean, ברירת מחדל: true)
-- אחרי התחברות מוצלחת, אם `rememberMe === false`:
-  - נקרא ל-`supabase.auth.getSession()` ונשמור את הטוקנים ב-sessionStorage
-  - נמחק מ-localStorage
-
-### שינויים ב-Auth.tsx
-- ייבוא Checkbox מ-components/ui/checkbox
-- הוספת state `rememberMe`
-- הוספת שורה עם Checkbox + label "זכור אותי" מתחת לשדה הסיסמה
-- לוגיקה אחרי signInWithPassword מוצלח: אם לא מסומן, העברת טוקנים ל-sessionStorage
-
----
-
-## 2. בדיקות (Unit Tests)
-
-### קובץ חדש: src/test/utils.test.ts
-- בדיקה שפונקציית `cn()` עובדת נכון (מיזוג classes)
-
-### קובץ חדש: src/test/useItems.test.ts
-- בדיקות לטיפוסי ה-ItemWithCategory
-- בדיקה שהאובייקט שנשלח ל-addItem מכיל את כל השדות הנדרשים
-
-### קובץ חדש: src/test/Stats.test.ts
-- בדיקות ללוגיקת חישוב הסטטיסטיקות (סה"כ פריטים, הוצאות, סטטוס אחריות)
-- בדיקה שנתוני הגרפים מחושבים נכון (קטגוריות, ציר זמן רכישות)
-
-### קובץ חדש: src/test/Auth.test.ts
-- בדיקה שמצב login/signup/forgot משנה את הטקסט בכפתור
-- בדיקה שתיבת "זכור אותי" מופיעה רק במצב login
-
-### קובץ חדש: src/test/warranty.test.ts
-- בדיקה שפונקציית getWarrantyStatus מחזירה תוצאה נכונה לתאריך עתידי (פעילה), עבר (פגה), ו-null (לא הוגדרה)
+כש-FAB פתוח הוא ישתנה לאייקון X לסגירה.
 
 ---
 
 ## פרטים טכניים
 
-### קבצים שישתנו
-- **src/pages/Auth.tsx** - הוספת Checkbox "זכור אותי" + לוגיקת sessionStorage
+### קובץ: src/pages/Dashboard.tsx
 
-### קבצים חדשים
-- **src/test/utils.test.ts** - בדיקות cn()
-- **src/test/Stats.test.ts** - בדיקות לוגיקת סטטיסטיקות
-- **src/test/Auth.test.ts** - בדיקות מצבי Auth
-- **src/test/warranty.test.ts** - בדיקות סטטוס אחריות
+**שינויים:**
+- ייבוא `useItems` (כבר קיים בקוד דרך `useItems` - רק צריך לחלץ גם את `addItem`)
+- ייבוא `toast` מ-`sonner` ו-`X` מ-`lucide-react`
+- הוספת states: `quickAddOpen` (boolean), `quickName` (string)
+- הוספת `inputRef` (useRef) לפוקוס אוטומטי
+- פונקציית `handleQuickAdd`:
+  - בדיקה ש-`quickName.trim()` לא ריק
+  - קריאה ל-`addItem.mutateAsync({ name: quickName.trim() })`
+  - איפוס השדה והחזרת פוקוס
+  - הצגת toast עם שם הפריט שנוסף
+- ה-FAB ישתנה: `onClick` יפתח/יסגור את הפאנל (toggle), האייקון ישתנה בין Plus ל-X
+- פאנל fixed בתחתית המסך עם:
+  - רקע card עם border למעלה וצל
+  - שורה עם Input (כפתור Enter) + Button "הוסף"
+  - שורה שנייה עם לינק "טופס מלא" (ניווט ל-`/item/new`) וכפתור X לסגירה
+  - אנימציית slide-up פשוטה עם transition
 
-### ייצוא פונקציות לבדיקה
-- פונקציית `getWarrantyStatus` תיוצא (export) מ-ItemView.tsx כדי שנוכל לבדוק אותה ישירות
+### קומפוננטה חדשה: src/components/QuickAddPanel.tsx
+
+כדי לשמור על קוד סמנטי וקריא, הפאנל יופרד לקומפוננטה נפרדת:
+
+```
+Props:
+- isOpen: boolean
+- onClose: () => void
+- onAdd: (name: string) => Promise<void>
+- isAdding: boolean
+```
+
+הקומפוננטה תכלול:
+- ניהול ה-input state פנימי
+- ref לפוקוס אוטומטי כשנפתח
+- טיפול ב-Enter key
+- ולידציה בסיסית (שם לא ריק)
+- אנימציית כניסה/יציאה
+
+### שינויים ב-Dashboard.tsx
+- שימוש ב-`QuickAddPanel` במקום inline JSX
+- ה-FAB ישתנה לפי מצב `quickAddOpen`
+- שליפת `addItem` מ-`useItems`
