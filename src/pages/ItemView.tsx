@@ -14,7 +14,7 @@ import { ArrowRight, Edit, Trash2, Download, FileText, Image as ImageIcon, Folde
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 
-function getWarrantyStatus(warrantyEndDate: string | null) {
+export function getWarrantyStatus(warrantyEndDate: string | null) {
   if (!warrantyEndDate) return { label: "לא הוגדרה", variant: "secondary" as const, icon: ShieldQuestion };
   const end = new Date(warrantyEndDate);
   if (end >= new Date()) return { label: "אחריות פעילה", variant: "default" as const, icon: ShieldCheck };
