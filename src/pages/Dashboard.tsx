@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useItems } from "@/hooks/useItems";
@@ -8,11 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X, DoorOpen } from "lucide-react";
+import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X, DoorOpen, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { toast } from "sonner";
 import QuickAddPanel from "@/components/QuickAddPanel";
+import { supabase } from "@/integrations/supabase/client";
+
+type SortOption = "newest" | "oldest" | "name_asc" | "name_desc" | "price_high" | "price_low";
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
@@ -20,6 +23,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [roomFilter, setRoomFilter] = useState<string>("");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const { data: categories, ensureDefaults } = useCategories();
   const { data: rooms, ensureDefaults: ensureRoomDefaults } = useRooms();
@@ -29,6 +33,47 @@ export default function Dashboard() {
     await addItem.mutateAsync({ name });
     toast.success(`"${name}" נוסף בהצלחה`);
   };
+
+  const handlePhotoCapture = async (file: File) => {
+    if (!user) return;
+    // Create item with photo name, then upload the photo
+    const itemName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ") || "פריט חדש";
+    try {
+      const newItem = await addItem.mutateAsync({ name: itemName });
+      const filePath = `${user.id}/${newItem.id}/${Date.now()}_${file.name}`;
+      await supabase.storage.from("item-files").upload(filePath, file);
+      await supabase.from("item_files").insert({
+        item_id: newItem.id,
+        file_name: file.name,
+        file_path: filePath,
+      });
+      toast.success("הפריט צולם ונשמר! לחץ עליו כדי לערוך את הפרטים");
+      navigate(`/item/${newItem.id}/edit`);
+    } catch (err: any) {
+      toast.error("שגיאה בשמירת הצילום");
+    }
+  };
+
+  const sortedItems = useMemo(() => {
+    if (!items) return [];
+    const sorted = [...items];
+    switch (sortBy) {
+      case "newest":
+        return sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      case "oldest":
+        return sorted.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      case "name_asc":
+        return sorted.sort((a, b) => a.name.localeCompare(b.name, "he"));
+      case "name_desc":
+        return sorted.sort((a, b) => b.name.localeCompare(a.name, "he"));
+      case "price_high":
+        return sorted.sort((a, b) => (b.purchase_price || 0) - (a.purchase_price || 0));
+      case "price_low":
+        return sorted.sort((a, b) => (a.purchase_price || 0) - (b.purchase_price || 0));
+      default:
+        return sorted;
+    }
+  }, [items, sortBy]);
 
   useEffect(() => {
     if (user?.id) {
@@ -73,7 +118,7 @@ export default function Dashboard() {
             />
           </div>
           <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-full sm:w-40">
+            <SelectTrigger className="w-full sm:w-36">
               <SelectValue placeholder="קטגוריה" />
             </SelectTrigger>
             <SelectContent>
@@ -86,7 +131,7 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
           <Select value={roomFilter} onValueChange={(v) => setRoomFilter(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-full sm:w-40">
+            <SelectTrigger className="w-full sm:w-36">
               <SelectValue placeholder="חדר" />
             </SelectTrigger>
             <SelectContent>
@@ -98,6 +143,20 @@ export default function Dashboard() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+            <SelectTrigger className="w-full sm:w-36">
+              <ArrowUpDown className="h-3.5 w-3.5 ml-1" />
+              <SelectValue placeholder="מיון" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">חדש → ישן</SelectItem>
+              <SelectItem value="oldest">ישן → חדש</SelectItem>
+              <SelectItem value="name_asc">א → ת</SelectItem>
+              <SelectItem value="name_desc">ת → א</SelectItem>
+              <SelectItem value="price_high">מחיר ↓</SelectItem>
+              <SelectItem value="price_low">מחיר ↑</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Items Grid */}
@@ -105,7 +164,7 @@ export default function Dashboard() {
           <div className="flex justify-center py-12">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>
-        ) : items?.length === 0 ? (
+        ) : sortedItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Package className="mb-4 h-16 w-16 opacity-30" />
             <p className="text-lg font-medium">אין פריטים עדיין</p>
@@ -113,7 +172,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items?.map((item) => (
+            {sortedItems.map((item) => (
               <Card
                 key={item.id}
                 className="cursor-pointer transition-shadow hover:shadow-md"
@@ -140,7 +199,10 @@ export default function Dashboard() {
                         : <span className="inline-flex items-center gap-0.5 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700"><ShieldX className="h-3 w-3" />פגה</span>
                     )}
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  {item.purchase_price != null && item.purchase_price > 0 && (
+                    <p className="mt-1 text-xs font-medium text-muted-foreground">₪{item.purchase_price.toLocaleString()}</p>
+                  )}
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {format(new Date(item.created_at), "d בMMMM yyyy", { locale: he })}
                   </p>
                 </CardContent>
@@ -164,6 +226,7 @@ export default function Dashboard() {
           onClose={() => setQuickAddOpen(false)}
           onAdd={handleQuickAdd}
           isAdding={addItem.isPending}
+          onPhotoCapture={handlePhotoCapture}
         />
       </main>
     </div>

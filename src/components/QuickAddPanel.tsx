@@ -2,27 +2,33 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FileText, X } from "lucide-react";
+import { FileText, X, Camera, Mic, MicOff } from "lucide-react";
 
 interface QuickAddPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (name: string) => Promise<void>;
   isAdding: boolean;
+  onPhotoCapture?: (file: File) => void;
 }
 
-export default function QuickAddPanel({ isOpen, onClose, onAdd, isAdding }: QuickAddPanelProps) {
+export default function QuickAddPanel({ isOpen, onClose, onAdd, isAdding, onPhotoCapture }: QuickAddPanelProps) {
   const [name, setName] = useState("");
+  const [isListening, setIsListening] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
   const navigate = useNavigate();
+
+  const speechSupported = typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
 
   useEffect(() => {
     if (isOpen) {
-      // Small delay to let the animation start before focusing
       const timer = setTimeout(() => inputRef.current?.focus(), 80);
       return () => clearTimeout(timer);
     }
     setName("");
+    stopListening();
   }, [isOpen]);
 
   const handleSubmit = useCallback(async () => {
@@ -42,6 +48,44 @@ export default function QuickAddPanel({ isOpen, onClose, onAdd, isAdding }: Quic
     if (e.key === "Escape") {
       onClose();
     }
+  };
+
+  const startListening = useCallback(() => {
+    if (!speechSupported) return;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SR();
+    recognition.lang = "he-IL";
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((r) => r[0].transcript)
+        .join("");
+      setName(transcript);
+    };
+
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognition.start();
+    recognitionRef.current = recognition;
+    setIsListening(true);
+  }, [speechSupported]);
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setIsListening(false);
+  }, []);
+
+  const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onPhotoCapture) {
+      onPhotoCapture(file);
+    }
+    // Reset input so same file can be selected again
+    e.target.value = "";
   };
 
   return (
@@ -75,17 +119,54 @@ export default function QuickAddPanel({ isOpen, onClose, onAdd, isAdding }: Quic
 
           {/* Actions row */}
           <div className="flex items-center justify-between text-sm">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                navigate("/item/new");
-              }}
-              className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <FileText className="h-3.5 w-3.5" />
-              טופס מלא
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  navigate("/item/new");
+                }}
+                className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                טופס מלא
+              </button>
+
+              {/* Camera button */}
+              <button
+                type="button"
+                onClick={() => cameraRef.current?.click()}
+                className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Camera className="h-3.5 w-3.5" />
+                צלם
+              </button>
+              <input
+                ref={cameraRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleCameraCapture}
+              />
+
+              {/* Voice button */}
+              {speechSupported && (
+                <button
+                  type="button"
+                  onClick={isListening ? stopListening : startListening}
+                  className={`inline-flex items-center gap-1 transition-colors ${
+                    isListening
+                      ? "text-destructive animate-pulse"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                  {isListening ? "עצור" : "דבר"}
+                </button>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={onClose}
