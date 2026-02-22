@@ -13,9 +13,69 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Upload, X, FileText, Image as ImageIcon, CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, parse, isValid } from "date-fns";
 import { he } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+
+function DatePickerWithInput({
+  value,
+  onChange,
+  label,
+}: {
+  value: Date | undefined;
+  onChange: (date: Date | undefined) => void;
+  label: string;
+}) {
+  const [textValue, setTextValue] = useState(value ? format(value, "dd/MM/yyyy") : "");
+
+  useEffect(() => {
+    setTextValue(value ? format(value, "dd/MM/yyyy") : "");
+  }, [value]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setTextValue(raw);
+    if (raw.length === 10) {
+      const parsed = parse(raw, "dd/MM/yyyy", new Date());
+      if (isValid(parsed)) {
+        onChange(parsed);
+      }
+    } else if (raw === "") {
+      onChange(undefined);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">{label}</label>
+      <div className="flex gap-2">
+        <Input
+          value={textValue}
+          onChange={handleTextChange}
+          placeholder="dd/mm/yyyy"
+          dir="ltr"
+          className="flex-1 text-right"
+        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="icon" className="shrink-0">
+              <CalendarIcon className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={value}
+              onSelect={(d) => onChange(d)}
+              initialFocus
+              className="p-3 pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+}
 
 export default function ItemForm() {
   const { id } = useParams<{ id?: string }>();
@@ -156,21 +216,7 @@ export default function ItemForm() {
           </div>
         </div>
 
-        {/* Purchase date */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">תאריך רכישה</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-full justify-start text-right font-normal", !purchaseDate && "text-muted-foreground")}>
-                <CalendarIcon className="ml-2 h-4 w-4" />
-                {purchaseDate ? format(purchaseDate, "d בMMMM yyyy", { locale: he }) : "בחר תאריך"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={purchaseDate} onSelect={setPurchaseDate} initialFocus className="p-3 pointer-events-auto" />
-            </PopoverContent>
-          </Popover>
-        </div>
+        <DatePickerWithInput value={purchaseDate} onChange={setPurchaseDate} label="תאריך רכישה" />
 
         {/* Purchase price */}
         <div className="space-y-2">
@@ -178,21 +224,7 @@ export default function ItemForm() {
           <Input type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} placeholder="0" />
         </div>
 
-        {/* Warranty end date */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">תאריך סיום אחריות</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-full justify-start text-right font-normal", !warrantyEndDate && "text-muted-foreground")}>
-                <CalendarIcon className="ml-2 h-4 w-4" />
-                {warrantyEndDate ? format(warrantyEndDate, "d בMMMM yyyy", { locale: he }) : "בחר תאריך"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={warrantyEndDate} onSelect={setWarrantyEndDate} initialFocus className="p-3 pointer-events-auto" />
-            </PopoverContent>
-          </Popover>
-        </div>
+        <DatePickerWithInput value={warrantyEndDate} onChange={setWarrantyEndDate} label="תאריך סיום אחריות" />
 
         {/* Warranty file URL */}
         <div className="space-y-2">
