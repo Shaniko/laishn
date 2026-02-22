@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Home } from "lucide-react";
 
@@ -11,6 +12,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,6 +37,13 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ title: "שגיאה בהתחברות", description: error.message, variant: "destructive" });
+      } else if (!rememberMe) {
+        // Move tokens to sessionStorage so they're cleared when the tab closes
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          sessionStorage.setItem("sb-session", JSON.stringify(session));
+          localStorage.removeItem(`sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID}-auth-token`);
+        }
       }
     } else {
       const { error } = await supabase.auth.signUp({
@@ -83,6 +92,18 @@ export default function Auth() {
                 minLength={6}
                 dir="ltr"
               />
+            )}
+            {mode === "login" && (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
+                />
+                <label htmlFor="rememberMe" className="text-sm cursor-pointer select-none">
+                  זכור אותי
+                </label>
+              </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading
