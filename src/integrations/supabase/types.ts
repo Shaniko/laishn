@@ -77,6 +77,7 @@ export type Database = {
           phone: string | null
           purchase_date: string | null
           purchase_price: number | null
+          room_id: string | null
           updated_at: string
           user_id: string
           warranty_end_date: string | null
@@ -91,6 +92,7 @@ export type Database = {
           phone?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
+          room_id?: string | null
           updated_at?: string
           user_id: string
           warranty_end_date?: string | null
@@ -105,6 +107,7 @@ export type Database = {
           phone?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
+          room_id?: string | null
           updated_at?: string
           user_id?: string
           warranty_end_date?: string | null
@@ -118,7 +121,35 @@ export type Database = {
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "items_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      rooms: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

@@ -10,7 +10,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, Edit, Trash2, Download, FileText, Image as ImageIcon, FolderOpen, Calendar, Phone, ExternalLink, ShieldCheck, ShieldX, ShieldQuestion, DollarSign } from "lucide-react";
+import { ArrowRight, Edit, Trash2, Download, FileText, Image as ImageIcon, FolderOpen, Calendar, Phone, ExternalLink, ShieldCheck, ShieldX, ShieldQuestion, DollarSign, DoorOpen } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 
@@ -104,6 +104,13 @@ export default function ItemView() {
         {/* Details */}
         <Card>
           <CardContent className="p-5 space-y-4">
+            {item.rooms && (
+              <div className="flex items-center gap-2 text-sm">
+                <DoorOpen className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">חדר:</span>
+                <span className="font-medium">{item.rooms.name}</span>
+              </div>
+            )}
             {item.categories && (
               <div className="flex items-center gap-2 text-sm">
                 <FolderOpen className="h-4 w-4 text-muted-foreground" />

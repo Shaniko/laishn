@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useItem, useItems } from "@/hooks/useItems";
 import { useCategories } from "@/hooks/useCategories";
+import { useRooms } from "@/hooks/useRooms";
 import { useItemFiles } from "@/hooks/useItemFiles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,12 +24,14 @@ export default function ItemForm() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { data: categories } = useCategories();
+  const { data: rooms } = useRooms();
   const { addItem, updateItem } = useItems();
   const { data: existingItem } = useItem(isNew ? "" : id!);
   const { data: files, uploadFile, deleteFile } = useItemFiles(isNew ? "" : id!);
 
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
+  const [roomId, setRoomId] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [purchaseDate, setPurchaseDate] = useState<Date | undefined>();
   const [purchasePrice, setPurchasePrice] = useState("");
@@ -42,6 +45,7 @@ export default function ItemForm() {
     if (existingItem) {
       setName(existingItem.name);
       setCategoryId(existingItem.category_id || "");
+      setRoomId(existingItem.room_id || "");
       setNotes(existingItem.notes || "");
       setPurchaseDate(existingItem.purchase_date ? new Date(existingItem.purchase_date) : undefined);
       setPurchasePrice(existingItem.purchase_price != null ? String(existingItem.purchase_price) : "");
@@ -61,6 +65,7 @@ export default function ItemForm() {
       const itemData = {
         name: name.trim(),
         category_id: categoryId || null,
+        room_id: roomId || null,
         notes: notes.trim(),
         purchase_date: purchaseDate ? format(purchaseDate, "yyyy-MM-dd") : null,
         purchase_price: purchasePrice ? Number(purchasePrice) : null,
@@ -122,18 +127,33 @@ export default function ItemForm() {
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="לדוגמה: מקרר Samsung" />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">חדר / קטגוריה</label>
-          <Select value={categoryId} onValueChange={setCategoryId}>
-            <SelectTrigger>
-              <SelectValue placeholder="בחר קטגוריה" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories?.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">חדר</label>
+            <Select value={roomId} onValueChange={setRoomId}>
+              <SelectTrigger>
+                <SelectValue placeholder="בחר חדר" />
+              </SelectTrigger>
+              <SelectContent>
+                {rooms?.map((room) => (
+                  <SelectItem key={room.id} value={room.id}>{room.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">קטגוריה</label>
+            <Select value={categoryId} onValueChange={setCategoryId}>
+              <SelectTrigger>
+                <SelectValue placeholder="בחר קטגוריה" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories?.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Purchase date */}
