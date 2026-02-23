@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useDirection } from "@/hooks/useLocale";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -21,15 +23,17 @@ export default function PhotoSuggestDialog({
   onSelect,
   onClose,
 }: PhotoSuggestDialogProps) {
+  const { t } = useTranslation();
+  const dir = useDirection();
   const [custom, setCustom] = useState("");
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent dir="rtl" className="max-w-sm">
+      <DialogContent dir={dir} className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>מה צילמת?</DialogTitle>
+          <DialogTitle>{t("photo.title")}</DialogTitle>
           <DialogDescription>
-            {loading ? "מזהה את המוצר..." : "בחר שם למוצר או כתוב בעצמך"}
+            {loading ? t("photo.identifying") : t("photo.choose")}
           </DialogDescription>
         </DialogHeader>
 
@@ -54,7 +58,7 @@ export default function PhotoSuggestDialog({
               <Input
                 value={custom}
                 onChange={(e) => setCustom(e.target.value)}
-                placeholder="או כתוב שם אחר..."
+                placeholder={t("photo.custom_placeholder")}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && custom.trim()) onSelect(custom.trim());
                 }}
@@ -63,7 +67,7 @@ export default function PhotoSuggestDialog({
                 disabled={!custom.trim()}
                 onClick={() => onSelect(custom.trim())}
               >
-                בחר
+                {t("photo.select")}
               </Button>
             </div>
           </div>

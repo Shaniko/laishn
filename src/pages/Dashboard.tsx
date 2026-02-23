@@ -1,25 +1,30 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useItems } from "@/hooks/useItems";
 import { useCategories } from "@/hooks/useCategories";
 import { useRooms } from "@/hooks/useRooms";
+import { useDirection, useDateLocale } from "@/hooks/useLocale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X, DoorOpen, ArrowUpDown, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
-import { he } from "date-fns/locale";
 import { toast } from "sonner";
 import QuickAddPanel from "@/components/QuickAddPanel";
 import PhotoSuggestDialog from "@/components/PhotoSuggestDialog";
 import AskAssistant from "@/components/AskAssistant";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { supabase } from "@/integrations/supabase/client";
 
 type SortOption = "newest" | "oldest" | "name_asc" | "name_desc" | "price_high" | "price_low";
 
 export default function Dashboard() {
+  const { t } = useTranslation();
+  const dir = useDirection();
+  const dateLocale = useDateLocale();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -38,7 +43,7 @@ export default function Dashboard() {
 
   const handleQuickAdd = async (name: string) => {
     await addItem.mutateAsync({ name });
-    toast.success(`"${name}" נוסף בהצלחה`);
+    toast.success(t("dashboard.added_success", { name }));
   };
 
   const handlePhotoCapture = async (file: File) => {
@@ -49,7 +54,6 @@ export default function Dashboard() {
     setPhotoSuggestions([]);
 
     try {
-      // Convert to base64
       const arrayBuf = await file.arrayBuffer();
       const bytes = new Uint8Array(arrayBuf);
       let binary = "";
@@ -63,13 +67,12 @@ export default function Dashboard() {
       if (data?.suggestions?.length > 0) {
         setPhotoSuggestions(data.suggestions);
       } else {
-        // Fallback to file name
         const fallback = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
-        setPhotoSuggestions([fallback || "פריט חדש"]);
+        setPhotoSuggestions([fallback || t("photo.new_item")]);
       }
     } catch {
       const fallback = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
-      setPhotoSuggestions([fallback || "פריט חדש"]);
+      setPhotoSuggestions([fallback || t("photo.new_item")]);
     }
     setPhotoLoading(false);
   };
@@ -86,10 +89,10 @@ export default function Dashboard() {
         file_name: photoFile.name,
         file_path: filePath,
       });
-      toast.success("הפריט צולם ונשמר!");
+      toast.success(t("dashboard.photo_saved"));
       navigate(`/item/${newItem.id}/edit`);
     } catch {
-      toast.error("שגיאה בשמירת הצילום");
+      toast.error(t("dashboard.photo_error"));
     }
     setPhotoFile(null);
   };
@@ -124,7 +127,7 @@ export default function Dashboard() {
   }, [user?.id]);
 
   return (
-    <div dir="rtl" className="min-h-screen bg-background">
+    <div dir={dir} className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
@@ -132,10 +135,11 @@ export default function Dashboard() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
               <Home className="h-5 w-5 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold">הבית שלי</h1>
+            <h1 className="text-xl font-bold">{t("app_name")}</h1>
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => setAssistantOpen(true)} title="עוזר חכם">
+            <LanguageSwitcher />
+            <Button variant="ghost" size="icon" onClick={() => setAssistantOpen(true)} title={t("dashboard.smart_assistant")}>
               <MessageCircle className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate("/stats")}>
@@ -152,52 +156,48 @@ export default function Dashboard() {
         {/* Search & Filter */}
         <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
-            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground ${dir === "rtl" ? "right-3" : "left-3"}`} />
             <Input
-              placeholder="חיפוש פריט..."
+              placeholder={t("dashboard.search")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pr-10"
+              className={dir === "rtl" ? "pr-10" : "pl-10"}
             />
           </div>
           <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v === "all" ? "" : v)}>
             <SelectTrigger className="w-full sm:w-36">
-              <SelectValue placeholder="קטגוריה" />
+              <SelectValue placeholder={t("dashboard.category")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">כל הקטגוריות</SelectItem>
+              <SelectItem value="all">{t("dashboard.all_categories")}</SelectItem>
               {categories?.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </SelectItem>
+                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={roomFilter} onValueChange={(v) => setRoomFilter(v === "all" ? "" : v)}>
             <SelectTrigger className="w-full sm:w-36">
-              <SelectValue placeholder="חדר" />
+              <SelectValue placeholder={t("dashboard.room")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">כל החדרים</SelectItem>
+              <SelectItem value="all">{t("dashboard.all_rooms")}</SelectItem>
               {rooms?.map((room) => (
-                <SelectItem key={room.id} value={room.id}>
-                  {room.name}
-                </SelectItem>
+                <SelectItem key={room.id} value={room.id}>{room.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
             <SelectTrigger className="w-full sm:w-36">
               <ArrowUpDown className="h-3.5 w-3.5 ml-1" />
-              <SelectValue placeholder="מיון" />
+              <SelectValue placeholder={t("dashboard.sort")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">חדש → ישן</SelectItem>
-              <SelectItem value="oldest">ישן → חדש</SelectItem>
-              <SelectItem value="name_asc">א → ת</SelectItem>
-              <SelectItem value="name_desc">ת → א</SelectItem>
-              <SelectItem value="price_high">מחיר ↓</SelectItem>
-              <SelectItem value="price_low">מחיר ↑</SelectItem>
+              <SelectItem value="newest">{t("dashboard.newest")}</SelectItem>
+              <SelectItem value="oldest">{t("dashboard.oldest")}</SelectItem>
+              <SelectItem value="name_asc">{t("dashboard.name_asc")}</SelectItem>
+              <SelectItem value="name_desc">{t("dashboard.name_desc")}</SelectItem>
+              <SelectItem value="price_high">{t("dashboard.price_high")}</SelectItem>
+              <SelectItem value="price_low">{t("dashboard.price_low")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -210,8 +210,8 @@ export default function Dashboard() {
         ) : sortedItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Package className="mb-4 h-16 w-16 opacity-30" />
-            <p className="text-lg font-medium">אין פריטים עדיין</p>
-            <p className="text-sm">לחץ על + כדי להוסיף פריט ראשון</p>
+            <p className="text-lg font-medium">{t("dashboard.no_items")}</p>
+            <p className="text-sm">{t("dashboard.add_first")}</p>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -238,15 +238,15 @@ export default function Dashboard() {
                     )}
                     {item.warranty_end_date && (
                       new Date(item.warranty_end_date) >= new Date()
-                        ? <span className="inline-flex items-center gap-0.5 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700"><ShieldCheck className="h-3 w-3" />פעילה</span>
-                        : <span className="inline-flex items-center gap-0.5 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700"><ShieldX className="h-3 w-3" />פגה</span>
+                        ? <span className="inline-flex items-center gap-0.5 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700"><ShieldCheck className="h-3 w-3" />{t("warranty.active")}</span>
+                        : <span className="inline-flex items-center gap-0.5 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700"><ShieldX className="h-3 w-3" />{t("warranty.expired")}</span>
                     )}
                   </div>
                   {item.purchase_price != null && item.purchase_price > 0 && (
                     <p className="mt-1 text-xs font-medium text-muted-foreground">₪{item.purchase_price.toLocaleString()}</p>
                   )}
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {format(new Date(item.created_at), "d בMMMM yyyy", { locale: he })}
+                    {format(new Date(item.created_at), "d MMMM yyyy", { locale: dateLocale })}
                   </p>
                 </CardContent>
               </Card>
@@ -258,7 +258,7 @@ export default function Dashboard() {
         <Button
           onClick={() => setQuickAddOpen((prev) => !prev)}
           size="lg"
-          className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg transition-transform duration-200"
+          className={`fixed bottom-6 h-14 w-14 rounded-full shadow-lg transition-transform duration-200 ${dir === "rtl" ? "left-6" : "right-6"}`}
         >
           {quickAddOpen ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
         </Button>

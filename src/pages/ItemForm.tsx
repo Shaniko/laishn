@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useItem, useItems } from "@/hooks/useItems";
 import { useCategories } from "@/hooks/useCategories";
 import { useRooms } from "@/hooks/useRooms";
 import { useItemFiles } from "@/hooks/useItemFiles";
+import { useDirection } from "@/hooks/useLocale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,9 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, Upload, X, FileText, Image as ImageIcon, CalendarIcon } from "lucide-react";
+import { ArrowRight, ArrowLeft, Upload, X, FileText, Image as ImageIcon, CalendarIcon } from "lucide-react";
 import { format, parse, isValid } from "date-fns";
-import { he } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 function DatePickerWithInput({
@@ -78,6 +79,8 @@ function DatePickerWithInput({
 }
 
 export default function ItemForm() {
+  const { t } = useTranslation();
+  const dir = useDirection();
   const { id } = useParams<{ id?: string }>();
   const isNew = !id;
   const navigate = useNavigate();
@@ -119,7 +122,7 @@ export default function ItemForm() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast({ title: "שם פריט הוא שדה חובה", variant: "destructive" });
+      toast({ title: t("item_form.name_required"), variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -149,18 +152,18 @@ export default function ItemForm() {
             file_path: filePath,
           });
         }
-        toast({ title: "הפריט נוסף בהצלחה!" });
+        toast({ title: t("item_form.item_added") });
         navigate(`/item/${newItem.id}`);
       } else {
         await updateItem.mutateAsync({ id: id!, ...itemData });
         for (const file of pendingFiles) {
           await uploadFile.mutateAsync(file);
         }
-        toast({ title: "הפריט עודכן בהצלחה!" });
+        toast({ title: t("item_form.item_updated") });
         navigate(`/item/${id}`);
       }
     } catch (err: any) {
-      toast({ title: "שגיאה", description: err.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
     }
     setSaving(false);
   };
@@ -173,29 +176,31 @@ export default function ItemForm() {
 
   const isImage = (name: string) => /\.(jpg|jpeg|png|gif|webp)$/i.test(name);
 
+  const BackArrow = dir === "rtl" ? ArrowRight : ArrowLeft;
+
   return (
-    <div dir="rtl" className="min-h-screen bg-background">
+    <div dir={dir} className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto flex items-center gap-3 px-4 py-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowRight className="h-5 w-5" />
+            <BackArrow className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-bold">{isNew ? "פריט חדש" : "עריכת פריט"}</h1>
+          <h1 className="text-lg font-bold">{isNew ? t("item_form.new_item") : t("item_form.edit_item")}</h1>
         </div>
       </header>
 
       <main className="container mx-auto max-w-lg px-4 py-6 space-y-5">
         <div className="space-y-2">
-          <label className="text-sm font-medium">שם פריט *</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="לדוגמה: מקרר Samsung" />
+          <label className="text-sm font-medium">{t("item_form.name_label")}</label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("item_form.name_placeholder")} />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <label className="text-sm font-medium">חדר</label>
+            <label className="text-sm font-medium">{t("item_form.room")}</label>
             <Select value={roomId} onValueChange={setRoomId}>
               <SelectTrigger>
-                <SelectValue placeholder="בחר חדר" />
+                <SelectValue placeholder={t("item_form.select_room")} />
               </SelectTrigger>
               <SelectContent>
                 {rooms?.map((room) => (
@@ -205,10 +210,10 @@ export default function ItemForm() {
             </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">קטגוריה</label>
+            <label className="text-sm font-medium">{t("item_form.category")}</label>
             <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger>
-                <SelectValue placeholder="בחר קטגוריה" />
+                <SelectValue placeholder={t("item_form.select_category")} />
               </SelectTrigger>
               <SelectContent>
                 {categories?.map((cat) => (
@@ -219,42 +224,37 @@ export default function ItemForm() {
           </div>
         </div>
 
-        <DatePickerWithInput value={purchaseDate} onChange={setPurchaseDate} label="תאריך רכישה" />
+        <DatePickerWithInput value={purchaseDate} onChange={setPurchaseDate} label={t("item_form.purchase_date")} />
 
-        {/* Purchase price */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">מחיר רכישה (₪)</label>
+          <label className="text-sm font-medium">{t("item_form.purchase_price")}</label>
           <Input type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} placeholder="0" />
         </div>
 
-        <DatePickerWithInput value={warrantyEndDate} onChange={setWarrantyEndDate} label="תאריך סיום אחריות" />
+        <DatePickerWithInput value={warrantyEndDate} onChange={setWarrantyEndDate} label={t("item_form.warranty_end")} />
 
-        {/* Warranty file URL */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">לינק לתעודת אחריות</label>
+          <label className="text-sm font-medium">{t("item_form.warranty_link")}</label>
           <Input value={warrantyFileUrl} onChange={(e) => setWarrantyFileUrl(e.target.value)} placeholder="https://..." />
         </div>
 
-        {/* Phone */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">טלפון שירות</label>
+          <label className="text-sm font-medium">{t("item_form.service_phone")}</label>
           <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="03-1234567" dir="ltr" className="text-right" />
         </div>
 
-        {/* Manual URL */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">לינק להוראות הפעלה</label>
+          <label className="text-sm font-medium">{t("item_form.manual_url")}</label>
           <Input value={manualUrl} onChange={(e) => setManualUrl(e.target.value)} placeholder="https://..." />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">הערות</label>
-          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="פרטים נוספים, מספר סידורי, תאריך רכישה..." rows={4} />
+          <label className="text-sm font-medium">{t("item_form.notes")}</label>
+          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t("item_form.notes_placeholder")} rows={4} />
         </div>
 
-        {/* File upload */}
         <div className="space-y-3">
-          <label className="text-sm font-medium">קבצים מצורפים</label>
+          <label className="text-sm font-medium">{t("item_form.files")}</label>
           {files?.map((f) => (
             <div key={f.id} className="flex items-center justify-between rounded-lg border bg-card p-3">
               <div className="flex items-center gap-2 text-sm">
@@ -279,13 +279,13 @@ export default function ItemForm() {
           ))}
           <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary">
             <Upload className="h-5 w-5" />
-            <span>לחץ להעלאת קובץ</span>
+            <span>{t("item_form.upload_file")}</span>
             <input type="file" className="hidden" multiple accept="image/*,.pdf" onChange={handleFileSelect} />
           </label>
         </div>
 
         <Button onClick={handleSave} className="w-full" disabled={saving}>
-          {saving ? "שומר..." : "שמור"}
+          {saving ? t("common.saving") : t("common.save")}
         </Button>
       </main>
     </div>
