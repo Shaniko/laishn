@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription,
 } from "@/components/ui/drawer";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2, Package } from "lucide-react";
 import { ItemWithCategory } from "@/hooks/useItems";
+import { useDirection } from "@/hooks/useLocale";
 
 interface AskAssistantProps {
   open: boolean;
@@ -16,6 +18,8 @@ interface AskAssistantProps {
 }
 
 export default function AskAssistant({ open, onClose, items }: AskAssistantProps) {
+  const { t } = useTranslation();
+  const dir = useDirection();
   const navigate = useNavigate();
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
@@ -66,7 +70,7 @@ export default function AskAssistant({ open, onClose, items }: AskAssistantProps
 
       if (!resp.ok || !resp.body) {
         const err = await resp.json().catch(() => ({}));
-        setAnswer(err.error || "שגיאה בקבלת תשובה");
+        setAnswer(err.error || t("assistant.response_error"));
         setLoading(false);
         return;
       }
@@ -105,7 +109,6 @@ export default function AskAssistant({ open, onClose, items }: AskAssistantProps
         }
       }
 
-      // Extract linked items [ITEMS:id1,id2]
       const match = fullText.match(/\[ITEMS:([^\]]+)\]/);
       if (match) {
         setLinkedItems(match[1].split(",").map((s) => s.trim()));
@@ -113,7 +116,7 @@ export default function AskAssistant({ open, onClose, items }: AskAssistantProps
       }
     } catch (e) {
       console.error(e);
-      setAnswer("שגיאה בחיבור לעוזר");
+      setAnswer(t("assistant.connection_error"));
     }
     setLoading(false);
   };
@@ -122,10 +125,10 @@ export default function AskAssistant({ open, onClose, items }: AskAssistantProps
 
   return (
     <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
-      <DrawerContent dir="rtl" className="max-h-[85vh]">
+      <DrawerContent dir={dir} className="max-h-[85vh]">
         <DrawerHeader>
-          <DrawerTitle>עוזר חכם 🤖</DrawerTitle>
-          <DrawerDescription>שאל שאלה על המוצרים שלך</DrawerDescription>
+          <DrawerTitle>{t("assistant.title")}</DrawerTitle>
+          <DrawerDescription>{t("assistant.desc")}</DrawerDescription>
         </DrawerHeader>
 
         <div className="px-4 pb-6 space-y-4">
@@ -134,7 +137,7 @@ export default function AskAssistant({ open, onClose, items }: AskAssistantProps
               ref={inputRef}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder='לדוגמה: "מתי פג האחריות של המקרר?"'
+              placeholder={t("assistant.placeholder")}
               onKeyDown={(e) => e.key === "Enter" && handleAsk()}
               disabled={loading}
             />
@@ -151,7 +154,7 @@ export default function AskAssistant({ open, onClose, items }: AskAssistantProps
 
           {matchedItems.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs text-muted-foreground font-medium">מוצרים רלוונטיים:</p>
+              <p className="text-xs text-muted-foreground font-medium">{t("assistant.relevant_items")}</p>
               {matchedItems.map((it) => (
                 <Button
                   key={it.id}

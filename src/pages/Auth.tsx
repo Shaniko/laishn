@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Home } from "lucide-react";
+import { useDirection } from "@/hooks/useLocale";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function Auth() {
+  const { t } = useTranslation();
+  const dir = useDirection();
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,9 +29,9 @@ export default function Auth() {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) {
-        toast({ title: "שגיאה", description: error.message, variant: "destructive" });
+        toast({ title: t("common.error"), description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "נשלח!", description: "כדאי לבדוק את האימייל שלך לקישור איפוס הסיסמה." });
+        toast({ title: t("auth.reset_sent"), description: t("auth.reset_sent_desc") });
         setMode("login");
       }
       setLoading(false);
@@ -36,9 +41,8 @@ export default function Auth() {
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        toast({ title: "שגיאה בהתחברות", description: error.message, variant: "destructive" });
+        toast({ title: t("auth.login_error"), description: error.message, variant: "destructive" });
       } else if (!rememberMe) {
-        // Move tokens to sessionStorage so they're cleared when the tab closes
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           sessionStorage.setItem("sb-session", JSON.stringify(session));
@@ -52,31 +56,34 @@ export default function Auth() {
         options: { emailRedirectTo: window.location.origin },
       });
       if (error) {
-        toast({ title: "שגיאה בהרשמה", description: error.message, variant: "destructive" });
+        toast({ title: t("auth.signup_error"), description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "נרשמת בהצלחה!", description: "נשאר רק לאשר את המייל שנשלח אליך:) ." });
+        toast({ title: t("auth.signup_success"), description: t("auth.signup_confirm") });
       }
     }
     setLoading(false);
   };
 
   return (
-    <div dir="rtl" className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div dir={dir} className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
             <Home className="h-7 w-7 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">הבית שלי</CardTitle>
+          <CardTitle className="text-2xl font-bold">{t("app_name")}</CardTitle>
           <CardDescription>
-            {mode === "login" ? "חיבור לחשבון שלך" : mode === "signup" ? "יצירת חשבון חדש" : "איפוס סיסמה"}
+            {mode === "login" ? t("auth.login_desc") : mode === "signup" ? t("auth.signup_desc") : t("auth.forgot_desc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               type="email"
-              placeholder="אימייל"
+              placeholder={t("auth.email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -85,7 +92,7 @@ export default function Auth() {
             {mode !== "forgot" && (
               <Input
                 type="password"
-                placeholder="סיסמה"
+                placeholder={t("auth.password")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -101,18 +108,18 @@ export default function Auth() {
                   onCheckedChange={(checked) => setRememberMe(checked === true)}
                 />
                 <label htmlFor="rememberMe" className="text-sm cursor-pointer select-none">
-                  זכור אותי
+                  {t("auth.remember_me")}
                 </label>
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading
-                ? "טוען..."
+                ? t("common.loading")
                 : mode === "login"
-                  ? "התחברות"
+                  ? t("auth.login")
                   : mode === "signup"
-                    ? "הרשמה"
-                    : "שכחתי סיסמא - שליחת סיסמא חדשה"}
+                    ? t("auth.signup")
+                    : t("auth.send_reset")}
             </Button>
           </form>
 
@@ -122,7 +129,7 @@ export default function Auth() {
                 onClick={() => setMode("forgot")}
                 className="text-sm text-muted-foreground hover:text-primary hover:underline underline-offset-4"
               >
-                אופס, שכחתי סיסמה?
+                {t("auth.forgot_password")}
               </button>
             </div>
           )}
@@ -130,16 +137,16 @@ export default function Auth() {
           <div className="mt-4 text-center text-sm text-muted-foreground">
             {mode === "forgot" ? (
               <button onClick={() => setMode("login")} className="text-primary underline-offset-4 hover:underline">
-                חזרה להתחברות
+                {t("auth.back_to_login")}
               </button>
             ) : (
               <>
-                {mode === "login" ? "אין לי חשבון?" : "כבר יש לי חשבון?"}{" "}
+                {mode === "login" ? t("auth.no_account") : t("auth.have_account")}{" "}
                 <button
                   onClick={() => setMode(mode === "login" ? "signup" : "login")}
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  {mode === "login" ? "הרשמה" : "התחברות"}
+                  {mode === "login" ? t("auth.signup") : t("auth.login")}
                 </button>
               </>
             )}
