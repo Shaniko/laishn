@@ -57,7 +57,9 @@
     "added_success": "\"{{name}}\" добавлен успешно",
     "photo_saved": "Товар сфотографирован и сохранён!",
     "photo_error": "Ошибка сохранения фото",
-    "smart_assistant": "Умный помощник"
+    "smart_assistant": "Умный помощник",
+    "export_data": "Экспорт данных",
+    "export_success": "Данные экспортированы успешно!"
   },
   "warranty": {
     "active": "Активна",

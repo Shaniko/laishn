@@ -57,7 +57,9 @@
     "added_success": "\"{{name}}\" נוסף בהצלחה",
     "photo_saved": "הפריט צולם ונשמר!",
     "photo_error": "שגיאה בשמירת הצילום",
-    "smart_assistant": "עוזר חכם"
+    "smart_assistant": "עוזר חכם",
+    "export_data": "ייצוא נתונים",
+    "export_success": "הנתונים יוצאו בהצלחה!"
   },
   "warranty": {
     "active": "פעילה",
