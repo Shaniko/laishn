@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, LogOut, Home, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X, DoorOpen, ArrowUpDown, MessageCircle } from "lucide-react";
+import { Plus, Search, LogOut, Package, FolderOpen, BarChart3, ShieldCheck, ShieldX, X, DoorOpen, ArrowUpDown, MessageCircle } from "lucide-react";
+import appIcon from "@/assets/app-icon.png";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import QuickAddPanel from "@/components/QuickAddPanel";
@@ -134,9 +135,7 @@ export default function Dashboard() {
       <header className="sticky top-0 z-10 border-b bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
-              <Home className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <img src={appIcon} alt="HomeVault" className="h-9 w-9 rounded-xl" />
             <h1 className="text-xl font-bold">{t("app_name")}</h1>
           </div>
           <div className="flex gap-1">
