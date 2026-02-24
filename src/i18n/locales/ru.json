@@ -66,7 +66,10 @@
     "expired_label": "Гарантия истекла",
     "title": "Гарантия",
     "valid_until": "Действует до:",
-    "certificate": "Гарантийный сертификат"
+    "certificate": "Гарантийный сертификат",
+    "expiring_soon": "Гарантия скоро истекает",
+    "expiring_soon_desc": "У {{count}} товаров гарантия истекает в течение 30 дней",
+    "expires_in_days": "Истекает через {{days}} дн."
   },
   "item_form": {
     "new_item": "Новый товар",

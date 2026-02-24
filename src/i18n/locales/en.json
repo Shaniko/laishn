@@ -66,7 +66,10 @@
     "expired_label": "Warranty expired",
     "title": "Warranty",
     "valid_until": "Valid until:",
-    "certificate": "Warranty certificate"
+    "certificate": "Warranty certificate",
+    "expiring_soon": "Warranty expiring soon",
+    "expiring_soon_desc": "{{count}} items have warranty expiring within 30 days",
+    "expires_in_days": "Expires in {{days}} days"
   },
   "item_form": {
     "new_item": "New Item",

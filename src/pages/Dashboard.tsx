@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import QuickAddPanel from "@/components/QuickAddPanel";
 import PhotoSuggestDialog from "@/components/PhotoSuggestDialog";
 import AskAssistant from "@/components/AskAssistant";
+import WarrantyAlerts from "@/components/WarrantyAlerts";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -201,6 +202,9 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Warranty Alerts */}
+        {items && <WarrantyAlerts items={items} />}
 
         {/* Items Grid */}
         {isLoading ? (
