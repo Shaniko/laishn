@@ -18,6 +18,7 @@ import PhotoSuggestDialog from "@/components/PhotoSuggestDialog";
 import AskAssistant from "@/components/AskAssistant";
 import WarrantyAlerts from "@/components/WarrantyAlerts";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ExportData from "@/components/ExportData";
 import { supabase } from "@/integrations/supabase/client";
 
 type SortOption = "newest" | "oldest" | "name_asc" | "name_desc" | "price_high" | "price_low";
@@ -140,6 +141,7 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-1">
             <LanguageSwitcher />
+            <ExportData />
             <Button variant="ghost" size="icon" onClick={() => setAssistantOpen(true)} title={t("dashboard.smart_assistant")}>
               <MessageCircle className="h-5 w-5" />
             </Button>

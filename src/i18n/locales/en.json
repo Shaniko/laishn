@@ -57,7 +57,9 @@
     "added_success": "\"{{name}}\" added successfully",
     "photo_saved": "Item captured and saved!",
     "photo_error": "Error saving photo",
-    "smart_assistant": "Smart Assistant"
+    "smart_assistant": "Smart Assistant",
+    "export_data": "Export Data",
+    "export_success": "Data exported successfully!"
   },
   "warranty": {
     "active": "Active",
