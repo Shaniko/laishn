@@ -7,7 +7,7 @@ const NotFound = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+    console.warn("404 - page not found");
   }, [location.pathname]);
 
   return (

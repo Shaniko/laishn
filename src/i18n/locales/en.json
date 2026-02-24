@@ -9,6 +9,7 @@
     "close": "Close",
     "add": "Add",
     "error": "Error",
+    "generic_error": "Something went wrong. Please try again.",
     "back": "Back"
   },
   "auth": {

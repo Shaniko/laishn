@@ -29,7 +29,7 @@ export default function Auth() {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) {
-        toast({ title: t("common.error"), description: error.message, variant: "destructive" });
+        toast({ title: t("common.error"), description: t("common.generic_error"), variant: "destructive" });
       } else {
         toast({ title: t("auth.reset_sent"), description: t("auth.reset_sent_desc") });
         setMode("login");
@@ -41,7 +41,7 @@ export default function Auth() {
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        toast({ title: t("auth.login_error"), description: error.message, variant: "destructive" });
+        toast({ title: t("auth.login_error"), description: t("common.generic_error"), variant: "destructive" });
       } else if (!rememberMe) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
@@ -56,7 +56,7 @@ export default function Auth() {
         options: { emailRedirectTo: window.location.origin },
       });
       if (error) {
-        toast({ title: t("auth.signup_error"), description: error.message, variant: "destructive" });
+        toast({ title: t("auth.signup_error"), description: t("common.generic_error"), variant: "destructive" });
       } else {
         toast({ title: t("auth.signup_success"), description: t("auth.signup_confirm") });
       }
@@ -96,7 +96,7 @@ export default function Auth() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={4}
+                minLength={8}
                 dir="ltr"
               />
             )}
