@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Home } from "lucide-react";
+import appIcon from "@/assets/app-icon.png";
 import { useDirection } from "@/hooks/useLocale";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
@@ -71,9 +71,7 @@ export default function Auth() {
       </div>
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
-            <Home className="h-7 w-7 text-primary-foreground" />
-          </div>
+          <img src={appIcon} alt="HomeVault" className="mx-auto mb-4 h-14 w-14 rounded-2xl" />
           <CardTitle className="text-2xl font-bold">{t("app_name")}</CardTitle>
           <CardDescription>
             {mode === "login" ? t("auth.login_desc") : mode === "signup" ? t("auth.signup_desc") : t("auth.forgot_desc")}
