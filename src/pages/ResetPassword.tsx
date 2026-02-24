@@ -28,14 +28,14 @@ export default function ResetPassword() {
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
+    if (password.length < 8) {
       toast({ title: t("auth.password_min"), variant: "destructive" });
       return;
     }
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
-      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: t("common.generic_error"), variant: "destructive" });
     } else {
       toast({ title: t("auth.password_updated") });
       navigate("/");
@@ -61,7 +61,7 @@ export default function ResetPassword() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               dir="ltr"
             />
             <Button type="submit" className="w-full" disabled={loading}>

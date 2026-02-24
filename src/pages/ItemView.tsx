@@ -58,7 +58,7 @@ export default function ItemView() {
       toast({ title: t("item_view.item_deleted") });
       navigate("/");
     } catch (err: any) {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: t("common.generic_error"), variant: "destructive" });
     }
   };
 
