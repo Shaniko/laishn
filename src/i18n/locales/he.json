@@ -66,7 +66,10 @@
     "expired_label": "אחריות פגה",
     "title": "אחריות",
     "valid_until": "תוקף עד:",
-    "certificate": "תעודת אחריות"
+    "certificate": "תעודת אחריות",
+    "expiring_soon": "אחריות עומדת לפוג",
+    "expiring_soon_desc": "ל-{{count}} פריטים האחריות פגה בתוך 30 יום",
+    "expires_in_days": "פג בעוד {{days}} ימים"
   },
   "item_form": {
     "new_item": "פריט חדש",
